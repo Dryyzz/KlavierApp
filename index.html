@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Klavierunterricht</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@500;600&display=swap');
+
+    :root {
+      --cream: #f5efe5;
+      --paper: #fbf8f1;
+      --sage: #aeb9a3;
+      --sage-dark: #687361;
+      --terracotta: #bd7764;
+      --terracotta-light: #e5b8a9;
+      --brown: #403a34;
+      --muted: #81776c;
+      --line: #d5cabc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.55), transparent 30%),
+        var(--cream);
+      color: var(--brown);
+      font-family: "DM Mono", monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 440px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 42px 34px 34px;
+      box-shadow:
+        0 14px 35px rgba(64, 58, 52, 0.08),
+        5px 5px 0 rgba(64, 58, 52, 0.08);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 38px;
+    }
+
+    .piano-mark {
+      width: 72px;
+      height: 42px;
+      margin: 0 auto 24px;
+      border: 2px solid var(--brown);
+      position: relative;
+      background: var(--paper);
+    }
+
+    .piano-mark::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 13px;
+      background:
+        repeating-linear-gradient(
+          to right,
+          var(--paper) 0,
+          var(--paper) 13px,
+          var(--brown) 13px,
+          var(--brown) 15px
+        );
+      border-bottom: 1px solid var(--brown);
+    }
+
+    .piano-mark::after {
+      content: "";
+      position: absolute;
+      top: 13px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        repeating-linear-gradient(
+          to right,
+          transparent 0,
+          transparent 13px,
+          var(--line) 13px,
+          var(--line) 14px
+        );
+    }
+
+    h1,
+    h2 {
+      font-family: "Playfair Display", serif;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+
+    h1 {
+      font-size: 34px;
+      margin: 0 0 10px;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin: 0 0 12px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .section {
+      margin-top: 28px;
+    }
+
+    button {
+      width: 100%;
+      min-height: 54px;
+      border: 1px solid var(--brown);
+      border-radius: 3px;
+      background: var(--sage);
+      color: var(--brown);
+      font-family: "DM Mono", monospace;
+      font-size: 13px;
+      cursor: pointer;
+      transition:
+        background 0.15s ease,
+        transform 0.15s ease;
+    }
+
+    button:hover {
+      background: #bbc5b1;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button + button {
+      margin-top: 12px;
+    }
+
+    button.secondary {
+      background: transparent;
+      border-color: var(--line);
+      color: var(--muted);
+    }
+
+    button.secondary:hover {
+      background: #f1ebe1;
+    }
+
+    button.danger {
+      background: transparent;
+      border-color: var(--terracotta);
+      color: var(--terracotta);
+    }
+
+    button.danger:hover {
+      background: #f5e3dc;
+    }
+
+    input {
+      width: 100%;
+      height: 58px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: #fffdf8;
+      color: var(--brown);
+      font-family: "DM Mono", monospace;
+      font-size: 22px;
+      text-align: center;
+      letter-spacing: 5px;
+      outline: none;
+      text-transform: uppercase;
+    }
+
+    input:focus {
+      border-color: var(--sage-dark);
+    }
+
+    .code {
+      text-align: center;
+      font-family: "DM Mono", monospace;
+      font-size: 36px;
+      letter-spacing: 8px;
+      margin: 28px 0;
+      color: var(--brown);
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      text-align: center;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      background: #f3eee5;
+      padding: 15px;
+      margin: 22px 0;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .status.success {
+      background: #e3e9de;
+      border-color: #b8c3ae;
+    }
+
+    .status.warning {
+      background: #f2e4d9;
+      border-color: #dfc0b1;
+    }
+
+    .timer {
+      text-align: center;
+      font-family: "DM Mono", monospace;
+      font-size: 58px;
+      letter-spacing: 2px;
+      margin: 32px 0;
+      color: var(--brown);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 30px 0;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 10px;
+      text-align: center;
+      line-height: 1.6;
+      margin-top: 22px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .request-title {
+      font-family: "Playfair Display", serif;
+      font-size: 23px;
+      text-align: center;
+      margin: 0 0 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- START -->
+  <div id="startScreen">
+
+    <div class="header">
+      <div class="piano-mark"></div>
+
+      <h1>Klavierunterricht</h1>
+
+      <p class="subtitle">
+        Eine kleine Verbindung zwischen<br>
+        Schüler und Lehrer.
+      </p>
+    </div>
+
+    <button onclick="showTeacherSetup()">
+      Lehrer
+    </button>
+
+    <button class="secondary" onclick="showStudentSetup()">
+      Schüler
+    </button>
+
+  </div>
+
+
+  <!-- TEACHER SETUP -->
+  <div id="teacherSetup" class="hidden">
+
+    <div class="header">
+      <div class="piano-mark"></div>
+
+      <h2>Lehrer</h2>
+
+      <p class="subtitle">
+        Erstelle einen persönlichen<br>
+        Verbindungscode.
+      </p>
+    </div>
+
+    <button onclick="createTeacherConnection()">
+      Verbindungscode erstellen
+    </button>
+
+    <button class="secondary" onclick="backToStart()">
+      Zurück
+    </button>
+
+  </div>
+
+
+  <!-- TEACHER -->
+  <div id="teacherScreen" class="hidden">
+
+    <div class="header">
+      <div class="piano-mark"></div>
+
+      <h2>Lehrer</h2>
+
+      <p class="subtitle">
+        Dein Verbindungscode
+      </p>
+    </div>
+
+    <div class="code" id="teacherCode">
+      ------
+    </div>
+
+    <div
+      id="teacherConnectionStatus"
+      class="status"
+    >
+      Warte auf Verbindung.
+    </div>
+
+    <div id="teacherRequest" class="hidden">
+
+      <div class="request-title">
+        Unterrichtsanfrage
+      </div>
+
+      <div class="status warning">
+        Es wurde eine Unterrichtsstunde angefragt.
+      </div>
+
+      <button onclick="acceptLesson()">
+        Unterricht beginnen
+      </button>
+
+    </div>
+
+    <div id="teacherActive" class="hidden">
+
+      <div class="status success">
+        Der Unterricht ist aktiv.
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <button
+      class="danger"
+      onclick="resetConnection()"
+    >
+      Verbindung zurücksetzen
+    </button>
+
+  </div>
+
+
+  <!-- STUDENT SETUP -->
+  <div id="studentSetup" class="hidden">
+
+    <div class="header">
+      <div class="piano-mark"></div>
+
+      <h2>Schüler</h2>
+
+      <p class="subtitle">
+        Gib den Verbindungscode<br>
+        deines Lehrers ein.
+      </p>
+    </div>
+
+    <input
+      id="codeInput"
+      maxlength="6"
+      placeholder="------"
+      autocomplete="off"
+    />
+
+    <div class="section">
+
+      <button onclick="connectStudent()">
+        Verbinden
+      </button>
+
+      <button
+        class="secondary"
+        onclick="backToStart()"
+      >
+        Zurück
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- STUDENT -->
+  <div id="studentScreen" class="hidden">
+
+    <div class="header">
+      <div class="piano-mark"></div>
+
+      <h2>Schüler</h2>
+
+      <p class="subtitle">
+        Deine Verbindung ist aktiv.
+      </p>
+    </div>
+
+    <div
+      id="studentStatus"
+      class="status success"
+    >
+      Verbunden.
+    </div>
+
+    <button
+      id="requestButton"
+      onclick="requestLesson()"
+    >
+      Unterricht anfragen
+    </button>
+
+    <div id="waitingBox" class="hidden">
+
+      <div class="status warning">
+        Deine Anfrage wurde gesendet.<br>
+        Warte auf die Bestätigung.
+      </div>
+
+    </div>
+
+    <div id="lessonBox" class="hidden">
+
+      <div class="status success">
+        Unterricht
+      </div>
+
+      <div
+        class="timer"
+        id="timer"
+      >
+        15:00
+      </div>
+
+      <button
+        class="danger"
+        onclick="endLesson()"
+      >
+        Unterricht beenden
+      </button>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <button
+      class="danger"
+      onclick="resetConnection()"
+    >
+      Verbindung zurücksetzen
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+
+  // ==========================================
+  // SUPABASE
+  // ==========================================
+
+  const SUPABASE_URL =
+    "https://vvhqvxhndiiqximottxu.supabase.co";
+
+  const SUPABASE_KEY =
+    "sb_publishable_PFVYGen4R7aBtx2nUN4SIw_B2rKRdVa";
+
+  const supabaseClient =
+    supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+
+  // ==========================================
+  // APP STATE
+  // ==========================================
+
+  let role =
+    localStorage.getItem("klavier_role");
+
+  let code =
+    localStorage.getItem("klavier_code");
+
+  let channel = null;
+
+  let timerInterval = null;
+
+  let secondsLeft = 900;
+
+
+  // ==========================================
+  // SCREEN MANAGEMENT
+  // ==========================================
+
+  function hideAllScreens() {
+
+    document
+      .querySelectorAll(".app > div")
+      .forEach(el => {
+        el.classList.add("hidden");
+      });
+
+  }
+
+
+  function showStart() {
+
+    hideAllScreens();
+
+    document
+      .getElementById("startScreen")
+      .classList.remove("hidden");
+
+  }
+
+
+  function showTeacherSetup() {
+
+    hideAllScreens();
+
+    document
+      .getElementById("teacherSetup")
+      .classList.remove("hidden");
+
+  }
+
+
+  function showStudentSetup() {
+
+    hideAllScreens();
+
+    document
+      .getElementById("studentSetup")
+      .classList.remove("hidden");
+
+  }
+
+
+  function backToStart() {
+
+    showStart();
+
+  }
+
+
+  // ==========================================
+  // INITIAL LOAD
+  // ==========================================
+
+  async function initializeApp() {
+
+    if (role === "teacher" && code) {
+
+      document
+        .getElementById("teacherCode")
+        .textContent = code;
+
+      hideAllScreens();
+
+      document
+        .getElementById("teacherScreen")
+        .classList.remove("hidden");
+
+      subscribeTeacher();
+
+      await refreshTeacherState();
+
+    }
+
+    else if (role === "student" && code) {
+
+      hideAllScreens();
+
+      document
+        .getElementById("studentScreen")
+        .classList.remove("hidden");
+
+      subscribeStudent();
+
+      await refreshStudentState();
+
+    }
+
+    else {
+
+      showStart();
+
+    }
+
+  }
+
+
+  // ==========================================
+  // TEACHER
+  // ==========================================
+
+  function generateCode() {
+
+    const chars =
+      "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    let result = "";
+
+    for (let i = 0; i < 6; i++) {
+
+      result +=
+        chars[
+          Math.floor(
+            Math.random() * chars.length
+          )
+        ];
+
+    }
+
+    return result;
+
+  }
+
+
+  async function createTeacherConnection() {
+
+    const newCode =
+      generateCode();
+
+
+    const { error } =
+      await supabaseClient
+        .from("connections")
+        .insert({
+          code: newCode,
+          teacher_connected: true,
+          student_connected: false,
+          lesson_requested: false,
+          lesson_active: false
+        });
+
+
+    if (error) {
+
+      alert(
+        "Verbindung konnte nicht erstellt werden:\n\n" +
+        error.message
+      );
+
+      console.error(error);
+
+      return;
+
+    }
+
+
+    role = "teacher";
+    code = newCode;
+
+
+    localStorage.setItem(
+      "klavier_role",
+      role
+    );
+
+    localStorage.setItem(
+      "klavier_code",
+      code
+    );
+
+
+    document
+      .getElementById("teacherCode")
+      .textContent = code;
+
+
+    hideAllScreens();
+
+    document
+      .getElementById("teacherScreen")
+      .classList.remove("hidden");
+
+
+    subscribeTeacher();
+
+    await refreshTeacherState();
+
+  }
+
+
+  async function refreshTeacherState() {
+
+    if (!code) return;
+
+
+    const { data, error } =
+      await supabaseClient
+        .from("connections")
+        .select("*")
+        .eq("code", code)
+        .single();
+
+
+    if (error) {
+
+      console.error(error);
+
+      return;
+
+    }
+
+
+    updateTeacherUI(data);
+
+  }
+
+
+  function updateTeacherUI(data) {
+
+    const connectionStatus =
+      document.getElementById(
+        "teacherConnectionStatus"
+      );
+
+    const requestBox =
+      document.getElementById(
+        "teacherRequest"
+      );
+
+    const activeBox =
+      document.getElementById(
+        "teacherActive"
+      );
+
+
+    if (data.student_connected) {
+
+      connectionStatus.textContent =
+        "Verbunden.";
+
+      connectionStatus.className =
+        "status success";
+
+    }
+
+    else {
+
+      connectionStatus.textContent =
+        "Warte auf Verbindung.";
+
+      connectionStatus.className =
+        "status";
+
+    }
+
+
+    requestBox.classList.add("hidden");
+
+    activeBox.classList.add("hidden");
+
+
+    if (data.lesson_requested) {
+
+      requestBox.classList.remove("hidden");
+
+    }
+
+
+    if (data.lesson_active) {
+
+      activeBox.classList.remove("hidden");
+
+    }
+
+  }
+
+
+  function subscribeTeacher() {
+
+    if (!code) return;
+
+
+    if (channel) {
+
+      supabaseClient
+        .removeChannel(channel);
+
+    }
+
+
+    channel =
+      supabaseClient
+        .channel("teacher-" + code)
+
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "connections",
+            filter: "code=eq." + code
+          },
+          payload => {
+
+            console.log(
+              "Teacher update:",
+              payload.new
+            );
+
+            updateTeacherUI(
+              payload.new
+            );
+
+          }
+        )
+
+        .subscribe(status => {
+
+          console.log(
+            "Teacher realtime:",
+            status
+          );
+
+        });
+
+  }
+
+
+  async function acceptLesson() {
+
+    if (!code) return;
+
+
+    const { error } =
+      await supabaseClient
+        .from("connections")
+        .update({
+          lesson_requested: false,
+          lesson_active: true
+        })
+        .eq("code", code);
+
+
+    if (error) {
+
+      alert(
+        "Fehler:\n\n" +
+        error.message
+      );
+
+      return;
+
+    }
+
+
+    await refreshTeacherState();
+
+  }
+
+
+  // ==========================================
+  // STUDENT
+  // ==========================================
+
+  async function connectStudent() {
+
+    const input =
+      document.getElementById(
+        "codeInput"
+      );
+
+
+    const enteredCode =
+      input.value
+        .trim()
+        .toUpperCase();
+
+
+    if (enteredCode.length !== 6) {
+
+      alert(
+        "Bitte einen 6-stelligen Code eingeben."
+      );
+
+      return;
+
+    }
+
+
+    const { data, error } =
+      await supabaseClient
+        .from("connections")
+        .select("*")
+        .eq("code", enteredCode)
+        .maybeSingle();
+
+
+    if (error) {
+
+      alert(
+        "Fehler:\n\n" +
+        error.message
+      );
+
+      console.error(error);
+
+      return;
+
+    }
+
+
+    if (!data) {
+
+      alert(
+        "Dieser Verbindungscode wurde nicht gefunden."
+      );
+
+      return;
+
+    }
+
+
+    const { error: updateError } =
+      await supabaseClient
+        .from("connections")
+        .update({
+          student_connected: true
+        })
+        .eq("code", enteredCode);
+
+
+    if (updateError) {
+
+      alert(
+        "Verbindung konnte nicht hergestellt werden:\n\n" +
+        updateError.message
+      );
+
+      return;
+
+    }
+
+
+    role = "student";
+    code = enteredCode;
+
+
+    localStorage.setItem(
+      "klavier_role",
+      role
+    );
+
+    localStorage.setItem(
+      "klavier_code",
+      code
+    );
+
+
+    hideAllScreens();
+
+    document
+      .getElementById("studentScreen")
+      .classList.remove("hidden");
+
+
+    subscribeStudent();
+
+    await refreshStudentState();
+
+  }
+
+
+  async function refreshStudentState() {
+
+    if (!code) return;
+
+
+    const { data, error } =
+      await supabaseClient
+        .from("connections")
+        .select("*")
+        .eq("code", code)
+        .single();
+
+
+    if (error) {
+
+      console.error(error);
+
+      return;
+
+    }
+
+
+    updateStudentUI(data);
+
+  }
+
+
+  function updateStudentUI(data) {
+
+    const status =
+      document.getElementById(
+        "studentStatus"
+      );
+
+    const requestButton =
+      document.getElementById(
+        "requestButton"
+      );
+
+    const waitingBox =
+      document.getElementById(
+        "waitingBox"
+      );
+
+    const lessonBox =
+      document.getElementById(
+        "lessonBox"
+      );
+
+
+    requestButton.classList.remove(
+      "hidden"
+    );
+
+    waitingBox.classList.add(
+      "hidden"
+    );
+
+    lessonBox.classList.add(
+      "hidden"
+    );
+
+
+    if (data.lesson_active) {
+
+      status.textContent =
+        "Unterricht läuft.";
+
+      status.className =
+        "status success";
+
+      requestButton.classList.add(
+        "hidden"
+      );
+
+      lessonBox.classList.remove(
+        "hidden"
+      );
+
+      startTimer();
+
+      return;
+
+    }
+
+
+    if (data.lesson_requested) {
+
+      status.textContent =
+        "Anfrage gesendet.";
+
+      status.className =
+        "status warning";
+
+      requestButton.classList.add(
+        "hidden"
+      );
+
+      waitingBox.classList.remove(
+        "hidden"
+      );
+
+      return;
+
+    }
+
+
+    status.textContent =
+      "Verbunden.";
+
+    status.className =
+      "status success";
+
+  }
+
+
+  function subscribeStudent() {
+
+    if (!code) return;
+
+
+    if (channel) {
+
+      supabaseClient
+        .removeChannel(channel);
+
+    }
+
+
+    channel =
+      supabaseClient
+        .channel("student-" + code)
+
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "connections",
+            filter: "code=eq." + code
+          },
+          payload => {
+
+            console.log(
+              "Student update:",
+              payload.new
+            );
+
+            updateStudentUI(
+              payload.new
+            );
+
+          }
+        )
+
+        .subscribe(status => {
+
+          console.log(
+            "Student realtime:",
+            status
+          );
+
+        });
+
+  }
+
+
+  async function requestLesson() {
+
+    if (!code) return;
+
+
+    const { error } =
+      await supabaseClient
+        .from("connections")
+        .update({
+          lesson_requested: true
+        })
+        .eq("code", code);
+
+
+    if (error) {
+
+      alert(
+        "Anfrage konnte nicht gesendet werden:\n\n" +
+        error.message
+      );
+
+      return;
+
+    }
+
+
+    await refreshStudentState();
+
+  }
+
+
+  // ==========================================
+  // TIMER
+  // ==========================================
+
+  function startTimer() {
+
+    if (timerInterval) return;
+
+
+    secondsLeft = 900;
+
+    updateTimerDisplay();
+
+
+    timerInterval =
+      setInterval(() => {
+
+        secondsLeft--;
+
+        updateTimerDisplay();
+
+
+        if (secondsLeft <= 0) {
+
+          clearInterval(
+            timerInterval
+          );
+
+          timerInterval = null;
+
+          finishLessonAutomatically();
+
+        }
+
+      }, 1000);
+
+  }
+
+
+  function updateTimerDisplay() {
+
+    const minutes =
+      Math.floor(
+        secondsLeft / 60
+      );
+
+    const seconds =
+      secondsLeft % 60;
+
+
+    document
+      .getElementById("timer")
+      .textContent =
+        String(minutes).padStart(2, "0") +
+        ":" +
+        String(seconds).padStart(2, "0");
+
+  }
+
+
+  async function finishLessonAutomatically() {
+
+    alert(
+      "Die 15 Minuten sind beendet."
+    );
+
+
+    await supabaseClient
+      .from("connections")
+      .update({
+        lesson_active: false
+      })
+      .eq("code", code);
+
+
+    secondsLeft = 900;
+
+    updateTimerDisplay();
+
+    await refreshStudentState();
+
+  }
+
+
+  async function endLesson() {
+
+    if (timerInterval) {
+
+      clearInterval(
+        timerInterval
+      );
+
+      timerInterval = null;
+
+    }
+
+
+    await supabaseClient
+      .from("connections")
+      .update({
+        lesson_active: false,
+        lesson_requested: false
+      })
+      .eq("code", code);
+
+
+    secondsLeft = 900;
+
+    updateTimerDisplay();
+
+    await refreshStudentState();
+
+  }
+
+
+  // ==========================================
+  // RESET
+  // ==========================================
+
+  async function resetConnection() {
+
+    if (
+      !confirm(
+        "Verbindung wirklich zurücksetzen?"
+      )
+    ) {
+      return;
+    }
+
+
+    if (timerInterval) {
+
+      clearInterval(
+        timerInterval
+      );
+
+      timerInterval = null;
+
+    }
+
+
+    if (channel) {
+
+      await supabaseClient
+        .removeChannel(channel);
+
+      channel = null;
+
+    }
+
+
+    localStorage.removeItem(
+      "klavier_role"
+    );
+
+    localStorage.removeItem(
+      "klavier_code"
+    );
+
+
+    role = null;
+    code = null;
+
+
+    showStart();
+
+  }
+
+
+  // ==========================================
+  // START
+  // ==========================================
+
+  initializeApp();
+
+</script>
+
+</body>
+</html>

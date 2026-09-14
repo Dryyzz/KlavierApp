@@ -1,0 +1,9 @@
+{
+  "name": "Klavierunterricht",
+  "short_name": "Klavier",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4efe6",
+  "theme_color": "#a8b5a0",
+  "description": "Klavierunterricht für 15 Minuten"
+}

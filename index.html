@@ -351,13 +351,6 @@
     >
       Warte auf Verbindung.
     </div>
-
-    <div
-      id="teacherConnectionStatus"
-      class="status"
-    >
-      Warte auf Verbindung.
-    </div>
     
     <button
       id="pushButton"
@@ -368,8 +361,6 @@
     </button>
 
 <div id="teacherRequest" class="hidden">
-
-    <div id="teacherRequest" class="hidden">
 
       <div class="request-title">
         Unterrichtsanfrage
@@ -1414,7 +1405,7 @@
     const { error: pushError } =
       await supabaseClient
         .functions
-        .invoke("send-push", {
+        .invoke("bright-worker", {
           body: {
             code: code
           }

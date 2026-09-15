@@ -1411,7 +1411,24 @@
 
     }
 
-
+    const { error: pushError } =
+      await supabaseClient
+        .functions
+        .invoke("send-push", {
+          body: {
+            code: code
+          }
+        });
+    
+    if (pushError) {
+    
+      console.error(
+        "Push konnte nicht gesendet werden:",
+        pushError
+      );
+    
+    }
+    
     await refreshStudentState();
 
   }

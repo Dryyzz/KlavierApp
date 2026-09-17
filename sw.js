@@ -58,6 +58,10 @@ self.addEventListener("push", event => {
     icon: "./icon-192.png",
     badge: "./icon-192.png",
 
+    tag: data.tag || "klavierunterricht",
+
+    renotify: true,
+
     vibrate: [
       300,
       120,

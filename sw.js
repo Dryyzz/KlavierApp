@@ -54,15 +54,22 @@ self.addEventListener("push", event => {
     data.title || "Klavierunterricht";
 
   const options = {
-    body:
-      data.body ||
-      "Eine Unterrichtsstunde wurde angefragt.",
+    body: data.body || "Eine Unterrichtsstunde wurde angefragt.",
     icon: "./icon-192.png",
     badge: "./icon-192.png",
+
+    vibrate: [
+      300,
+      120,
+      300,
+      120,
+      600
+    ],
+
+    requireInteraction: true,
+
     data: {
-      url:
-        data.url ||
-        "./"
+      url: data.url || "./"
     }
   };
 

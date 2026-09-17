@@ -1368,24 +1368,13 @@
     }
 
     if (data.teacher_coming) {
+      status.textContent = "Verbunden.";
+      status.className = "status success";
 
-      status.textContent =
-        "Lehrer kommt.";
+      requestButton.classList.add("hidden");
+      waitingBox.classList.remove("hidden");
 
-      status.className =
-        "status success";
-
-      requestButton.classList.add(
-        "hidden"
-      );
-
-      waitingBox.classList.remove(
-        "hidden"
-      );
-
-      waitingBox.querySelector(
-        ".status"
-      ).textContent =
+      waitingBox.querySelector(".status").textContent =
         "Der Lehrer kommt gleich.";
 
       return;

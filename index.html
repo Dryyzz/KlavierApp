@@ -1368,14 +1368,25 @@
     }
 
     if (data.teacher_coming) {
-      status.textContent = "Verbunden.";
-      status.className = "status success";
 
-      requestButton.classList.add("hidden");
-      waitingBox.classList.remove("hidden");
+      status.textContent =
+        "Anfrage von Bernard angenommen.";
 
-      waitingBox.querySelector(".status").textContent =
-        "Der Lehrer kommt gleich.";
+      status.className =
+        "status success";
+
+      requestButton.classList.add(
+        "hidden"
+      );
+
+      waitingBox.classList.remove(
+        "hidden"
+      );
+
+      waitingBox.querySelector(
+        ".status"
+      ).textContent =
+        "Bernard kommt gleich!";
 
       return;
     }

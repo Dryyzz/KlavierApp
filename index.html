@@ -980,75 +980,48 @@
 
 
   function updateTeacherUI(data) {
-
     const connectionStatus =
-      document.getElementById(
-        "teacherConnectionStatus"
-      );
+      document.getElementById("teacherConnectionStatus");
 
     const requestBox =
-      document.getElementById(
-        "teacherRequest"
-      );
+      document.getElementById("teacherRequest");
 
     const comingBox =
-      document.getElementById(
-        "teacherComing"
-      );
+      document.getElementById("teacherComing");
 
     const activeBox =
-      document.getElementById(
-        "teacherActive"
-      );
-
+      document.getElementById("teacherActive");
 
     if (data.student_connected) {
-
-      connectionStatus.textContent =
-        "Verbunden.";
-
-      connectionStatus.className =
-        "status success";
-
+      connectionStatus.textContent = "Verbunden.";
+      connectionStatus.className = "status success";
+    } else {
+      connectionStatus.textContent = "Warte auf Verbindung.";
+      connectionStatus.className = "status";
     }
-
-    else {
-
-      connectionStatus.textContent =
-        "Warte auf Verbindung.";
-
-      connectionStatus.className =
-        "status";
-
-    }
-
 
     requestBox.classList.add("hidden");
-
     comingBox.classList.add("hidden");
-
     activeBox.classList.add("hidden");
 
+    if (data.lesson_active) {
+      activeBox.classList.remove("hidden");
+
+      // Timer beim Lehrer starten
+      startTimer();
+
+      return;
+    }
 
     if (data.lesson_requested) {
-
       requestBox.classList.remove("hidden");
-
+      return;
     }
 
     if (data.teacher_coming) {
-
       comingBox.classList.remove("hidden");
-
+      return;
     }
-
-
-    if (data.lesson_active) {
-
-      activeBox.classList.remove("hidden");
-
-    }
-
   }
 
 
@@ -1158,7 +1131,6 @@
     }
 
     await refreshTeacherState();
-    startTimer();
   }
 
 

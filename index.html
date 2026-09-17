@@ -1288,117 +1288,77 @@
   }
 
 
-  function updateStudentUI(data) {
+function updateStudentUI(data) {
+  const status =
+    document.getElementById("studentStatus");
 
-    const status =
-      document.getElementById(
-        "studentStatus"
-      );
+  const requestButton =
+    document.getElementById("requestButton");
 
-    const requestButton =
-      document.getElementById(
-        "requestButton"
-      );
+  const waitingBox =
+    document.getElementById("waitingBox");
 
-    const waitingBox =
-      document.getElementById(
-        "waitingBox"
-      );
+  const lessonBox =
+    document.getElementById("lessonBox");
 
-    const lessonBox =
-      document.getElementById(
-        "lessonBox"
-      );
+  const waitingStatus =
+    waitingBox.querySelector(".status");
 
+  requestButton.classList.remove("hidden");
+  waitingBox.classList.add("hidden");
+  lessonBox.classList.add("hidden");
 
-    requestButton.classList.remove(
-      "hidden"
-    );
+  // Unterricht läuft
+  if (data.lesson_active) {
+    status.textContent = "Unterricht läuft.";
+    status.className = "status success";
 
-    waitingBox.classList.add(
-      "hidden"
-    );
+    requestButton.classList.add("hidden");
+    lessonBox.classList.remove("hidden");
 
-    lessonBox.classList.add(
-      "hidden"
-    );
-
-
-    if (data.lesson_active) {
-
-      status.textContent =
-        "Unterricht läuft.";
-
-      status.className =
-        "status success";
-
-      requestButton.classList.add(
-        "hidden"
-      );
-
-      lessonBox.classList.remove(
-        "hidden"
-      );
-
-      startTimer();
-
-      return;
-
-    }
-
-
-    if (data.lesson_requested) {
-
-      status.textContent =
-        "Anfrage gesendet.";
-
-      status.className =
-        "status warning";
-
-      requestButton.classList.add(
-        "hidden"
-      );
-
-      waitingBox.classList.remove(
-        "hidden"
-      );
-
-      return;
-
-    }
-
-    if (data.teacher_coming) {
-
-      status.textContent =
-        "Anfrage von Bernard angenommen.";
-
-      status.className =
-        "status success";
-
-      requestButton.classList.add(
-        "hidden"
-      );
-
-      waitingBox.classList.remove(
-        "hidden"
-      );
-
-      waitingBox.querySelector(
-        ".status"
-      ).textContent =
-        "Bernard kommt gleich!";
-
-      return;
-    }
-
-
-    status.textContent =
-      "Verbunden.";
-
-    status.className =
-      "status success";
-
+    startTimer();
+    return;
   }
+
+  // Lehrer hat "Komme gleich!" bestätigt
+  if (data.teacher_coming) {
+    status.textContent =
+      "Anfrage von Bernard angenommen.";
+    status.className = "status success";
+
+    requestButton.classList.add("hidden");
+    waitingBox.classList.remove("hidden");
+
+    waitingStatus.className =
+      "status success";
+    waitingStatus.textContent =
+      "Bernard kommt gleich!";
+
+    return;
+  }
+
+  // Anfrage wurde gerade erst gesendet
+  if (data.lesson_requested) {
+    status.textContent =
+      "Anfrage gesendet.";
+    status.className = "status warning";
+
+    requestButton.classList.add("hidden");
+    waitingBox.classList.remove("hidden");
+
+    waitingStatus.className =
+      "status warning";
+    waitingStatus.innerHTML =
+      "Bernard wurde gerufen.<br>" +
+      "Hoffentlich merkt er's schnell...";
+
+    return;
+  }
+
+  // Normal verbunden
+  status.textContent = "Verbunden.";
+  status.className = "status success";
+}
 
 
   function subscribeStudent() {

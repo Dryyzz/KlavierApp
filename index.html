@@ -371,6 +371,18 @@
       </div>
 
       <button onclick="acceptLesson()">
+        Komme gleich!
+      </button>
+
+    </div>
+
+    <div id="teacherComing" class="hidden">
+
+      <div class="status success">
+        Der Schüler wartet.
+      </div>
+
+      <button onclick="startLesson()">
         Unterricht beginnen
       </button>
 
@@ -967,6 +979,11 @@
         "teacherRequest"
       );
 
+    const comingBox =
+      document.getElementById(
+        "teacherComing"
+      );
+
     const activeBox =
       document.getElementById(
         "teacherActive"
@@ -996,12 +1013,20 @@
 
     requestBox.classList.add("hidden");
 
+    comingBox.classList.add("hidden");
+
     activeBox.classList.add("hidden");
 
 
     if (data.lesson_requested) {
 
       requestBox.classList.remove("hidden");
+
+    }
+
+    if (data.teacher_coming) {
+
+      comingBox.classList.remove("hidden");
 
     }
 
@@ -1066,20 +1091,20 @@
   }
 
 
-  async function acceptLesson() {
+  async function teacherComing() {
 
     if (!code) return;
-
 
     const { error } =
       await supabaseClient
         .from("connections")
         .update({
           lesson_requested: false,
-          lesson_active: true
+          teacher_coming: true,
+          lesson_requested_at: null,
+          reminder_count: 0
         })
         .eq("code", code);
-
 
     if (error) {
 
@@ -1089,12 +1114,38 @@
       );
 
       return;
-
     }
 
+    await refreshTeacherState();
+  }
+
+  async function startLesson() {
+
+    if (!code) return;
+
+    const { error } =
+      await supabaseClient
+        .from("connections")
+        .update({
+          lesson_active: true,
+          teacher_coming: false,
+          lesson_requested: false,
+          lesson_requested_at: null,
+          reminder_count: 0
+        })
+        .eq("code", code);
+
+    if (error) {
+
+      alert(
+        "Fehler:\n\n" +
+        error.message
+      );
+
+      return;
+    }
 
     await refreshTeacherState();
-
   }
 
 
@@ -1316,6 +1367,30 @@
 
     }
 
+    if (data.teacher_coming) {
+
+      status.textContent =
+        "Lehrer kommt.";
+
+      status.className =
+        "status success";
+
+      requestButton.classList.add(
+        "hidden"
+      );
+
+      waitingBox.classList.remove(
+        "hidden"
+      );
+
+      waitingBox.querySelector(
+        ".status"
+      ).textContent =
+        "Der Lehrer kommt gleich.";
+
+      return;
+    }
+
 
     status.textContent =
       "Verbunden.";
@@ -1386,7 +1461,12 @@
       await supabaseClient
         .from("connections")
         .update({
-          lesson_requested: true
+          lesson_requested: true,
+          teacher_coming: false,
+          lesson_requested_at:
+            new Date().toISOString(),
+          reminder_count: 0
+        })
         })
         .eq("code", code);
 

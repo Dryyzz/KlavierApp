@@ -389,11 +389,23 @@
     </div>
 
     <div id="teacherActive" class="hidden">
-
       <div class="status success">
         Der Unterricht ist aktiv.
       </div>
 
+      <div
+        class="timer"
+        id="teacherTimer"
+      >
+        15:00
+      </div>
+
+      <button
+        class="danger"
+        onclick="endLesson()"
+      >
+        Unterricht beenden
+      </button>
     </div>
 
     <div class="divider"></div>
@@ -1146,6 +1158,7 @@
     }
 
     await refreshTeacherState();
+    startTimer();
   }
 
 
@@ -1504,7 +1517,6 @@ function updateStudentUI(data) {
 
 
   function updateTimerDisplay() {
-
     const minutes =
       Math.floor(
         secondsLeft / 60
@@ -1513,14 +1525,24 @@ function updateStudentUI(data) {
     const seconds =
       secondsLeft % 60;
 
+    const time =
+      String(minutes).padStart(2, "0") +
+      ":" +
+      String(seconds).padStart(2, "0");
 
-    document
-      .getElementById("timer")
-      .textContent =
-        String(minutes).padStart(2, "0") +
-        ":" +
-        String(seconds).padStart(2, "0");
+    const studentTimer =
+      document.getElementById("timer");
 
+    const teacherTimer =
+      document.getElementById("teacherTimer");
+
+    if (studentTimer) {
+      studentTimer.textContent = time;
+    }
+
+    if (teacherTimer) {
+      teacherTimer.textContent = time;
+    }
   }
 
 
